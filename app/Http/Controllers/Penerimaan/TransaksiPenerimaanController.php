@@ -107,12 +107,14 @@ class TransaksiPenerimaanController extends Controller
             ->first();
 
         if (!$lastTransaction) {
-            return 'TRAN-' . $tipeTransaksi . '-00001';
+            $newID = 1; // ID transaksi pertama
         } else {
             $lastID = intval(substr($lastTransaction->TransaksiID, 8));
             $newID = $lastID + 1;
-            return response()->json(['transaksiId' => 'TRAN-' . $tipeTransaksi . '-' . str_pad($newID, 5, '0', STR_PAD_LEFT)]);
         }
+
+        $transaksiId = 'TRAN-' . $tipeTransaksi . '-' . str_pad($newID, 5, '0', STR_PAD_LEFT);
+        return response()->json(['transaksiId' => $transaksiId]);
     }
 
     public function getHarga($kodeBarang)
