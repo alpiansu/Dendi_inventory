@@ -357,7 +357,7 @@ return [
         [
             'text' => 'Input Penggunaan Barang',
             'icon' => 'fas fa-fw fa-truck',
-            'url'  => 'admin/transaksi/pengeluaran',
+            'url'  => 'admin/transaksi/pemakaian',
         ],
         /*
         [

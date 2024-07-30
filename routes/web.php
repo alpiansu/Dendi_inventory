@@ -63,6 +63,14 @@ Route::get('/admin/transaksi/penerimaan/edit/{id}', [TransaksiPenerimaanControll
 Route::put('/admin/transaksi/penerimaan/edit/{id}', [TransaksiPenerimaanController::class, 'update'])->name('transaksi.penerimaan.update');
 Route::delete('/admin/transaksi/penerimaan/{id}', [TransaksiPenerimaanController::class, 'destroy'])->name('transaksi.penerimaan.destroy');
 
+use App\Http\Controllers\Pengeluaran\TransaksiPemakaianController;
+
+Route::get('/admin/transaksi/pemakaian', [TransaksiPemakaianController::class, 'create'])->name('transaksi.pemakaian.create');
+Route::post('/admin/transaksi/pemakaian', [TransaksiPemakaianController::class, 'store'])->name('transaksi.pemakaian.store');
+Route::get('/admin/transaksi/pemakaian/edit/{id}', [TransaksiPemakaianController::class, 'edit'])->name('transaksi.pemakaian.edit');
+Route::put('/admin/transaksi/pemakaian/edit/{id}', [TransaksiPemakaianController::class, 'update'])->name('transaksi.pemakaian.update');
+Route::delete('/admin/transaksi/pemakaian/{id}', [TransaksiPemakaianController::class, 'destroy'])->name('transaksi.pemakaian.destroy');
+
 use App\Http\Controllers\Master\MasterJenisBarcodeController;
 
 Route::get('/admin/master/barcode', [MasterJenisBarcodeController::class, 'index'])->name('master.barcode.index');
