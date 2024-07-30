@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Pengeluaran;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Models\MasterBarang;
+
 class TransaksiPemakaianController extends Controller
 {
     /**
@@ -24,7 +26,8 @@ class TransaksiPemakaianController extends Controller
      */
     public function create()
     {
-        //
+        $masterBarangs = MasterBarang::all();
+        return view('pengeluaran.create-pemakaian', compact('masterBarangs'));
     }
 
     /**
@@ -35,7 +38,6 @@ class TransaksiPemakaianController extends Controller
      */
     public function store(Request $request)
     {
-        return view('pengeluaran.create-pemakaian');
     }
 
     /**
