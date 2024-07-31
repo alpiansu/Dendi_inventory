@@ -31,19 +31,24 @@
                 </div>
             @endif
 
-            <form action="{{ route('transaksi.penerimaan.store') }}" method="POST">
+            <form action="{{ route('transaksi.pemakaian.store') }}" method="POST">
                 @csrf
                 <div class="form-group">
                     <label for="transaksiId">Transaksi ID</label>
                     <input type="text" class="form-control" id="transaksiId" name="transaksiId" readonly>
                 </div>
                 <div class="form-group">
-                    <label for="docno">Document Number</label>
-                    <input type="text" class="form-control" id="docno" name="docno" value="{{ old('docno') }}" required>
+                    <label for="docno">PIC Penerima</label>
+                    <input type="text" class="form-control" id="Pengirim" name="Pengirim" value="{{ old('Pengirim') }}" required>
                 </div>
                 <div class="form-group">
-                    <label for="pengirim">Pengirim</label>
-                    <input type="text" class="form-control" id="pengirim" name="pengirim" value="{{ old('pengirim') }}" required>
+                    <label for="kodeAlat">Kode Alat</label>
+                    <select class="form-control" id="kodeAlat" name="kodeAlat" required>
+                        <option value="">Pilih Kode Alat</option>
+                        @foreach ($masterAlats as $alat)
+                            <option value="{{ $alat->KodeAlat }}">{{ $alat->KodeAlat }} - {{ $alat->NamaAlat }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Dynamic fields for multiple KodeBarang -->
@@ -82,6 +87,83 @@
     @push('js')
     <script>
         $(document).ready(function() {
+            var next = 0;
+            var masterBarangs = @json($masterBarangs);
+            var selectedBarangs = [];
+
+            function updateBarangOptions() {
+                $('.kode-barang').each(function() {
+                    var currentValue = $(this).val();
+                    $(this).find('option').show();
+                    selectedBarangs.forEach(function(kodeBarang) {
+                        if (kodeBarang !== currentValue) {
+                            $(this).find('option[value="' + kodeBarang + '"]').hide();
+                        }
+                    }.bind(this));
+                });
+            }
+
+            $("#btn-add-barang").click(function() {
+                next++;
+                var field = `
+                    <div class="barang-field">
+                        <div class="form-group">
+                            <label for="KodeBarang_${next}">Kode Barang</label>
+                            <select class="form-control kode-barang" id="KodeBarang_${next}" name="KodeBarang[]" required>
+                                <option value="">Pilih Kode Barang</option>
+                `;
+                
+                masterBarangs.forEach(function(barang) {
+                    if (!selectedBarangs.includes(barang.KodeBarang)) {
+                        field += `<option value="${barang.KodeBarang}">${barang.KodeBarang} - ${barang.NamaItem}</option>`;
+                    }
+                });
+
+                field += `
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Qty_${next}">Qty</label>
+                            <input type="number" class="form-control" id="Qty_${next}" name="Qty[]" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="Harga_${next}">Harga</label>
+                            <input type="number" step="0.01" class="form-control harga" id="Harga_${next}" name="Harga[]" readonly>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm btn-remove">Hapus Barang</button>
+                    </div>
+                `;
+                $("#barang-fields").append(field);
+                updateBarangOptions();
+            });
+
+            $(document).on('click', '.btn-remove', function() {
+                var kodeBarang = $(this).closest('.barang-field').find('.kode-barang').val();
+                selectedBarangs = selectedBarangs.filter(item => item !== kodeBarang);
+                $(this).closest('.barang-field').remove();
+                updateBarangOptions();
+            });
+
+            $(document).on('change', '.kode-barang', function() {
+                var kodeBarang = $(this).val();
+                var hargaField = $(this).closest('.barang-field').find('.harga');
+                
+                if (kodeBarang) {
+                    $.ajax({
+                        url: '/admin/get-harga-barang/' + kodeBarang,
+                        type: 'GET',
+                        success: function(data) {
+                            hargaField.val(data.harga);
+                        }
+                    });
+                    selectedBarangs.push(kodeBarang);
+                } else {
+                    hargaField.val('');
+                    selectedBarangs = selectedBarangs.filter(item => item !== kodeBarang);
+                }
+                updateBarangOptions();
+            });
+
             // Load Transaksi ID saat halaman dimuat
             $.ajax({
                 url: '/admin/get-transaksi-id/O',
