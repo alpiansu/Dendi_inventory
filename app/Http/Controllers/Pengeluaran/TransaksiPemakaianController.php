@@ -10,6 +10,8 @@ use App\Models\MasterBarang;
 use App\Models\MasterAlat;
 use App\Models\MasterTransaksi;
 
+use PDF;
+
 class TransaksiPemakaianController extends Controller
 {
     /**
@@ -47,7 +49,7 @@ class TransaksiPemakaianController extends Controller
             'transaksiId' => 'required|string|max:25',
             'Pengirim' => 'required|string|max:255',
             'kodeAlat' => 'required|string|max:50',
-            'KodeBarang.*' => 'required|string|max:50',
+            'KodeBarang.*' => 'required|string|max:50|exists:masterbarang,KodeBarang',
             'Qty.*' => 'required|integer|min:1',
         ]);
 
@@ -58,9 +60,11 @@ class TransaksiPemakaianController extends Controller
         $kodeBarang = $request->input('KodeBarang');
         $qty = $request->input('Qty');
 
-        // Mulai transaksi database
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+            $userId = auth()->id();
+            $now = now();
+            $barangDetails = [];
             foreach ($kodeBarang as $index => $barangKode) {
                 $barang = MasterBarang::where('KodeBarang', $barangKode)->first();
 
@@ -70,30 +74,57 @@ class TransaksiPemakaianController extends Controller
                 }
 
                 // Buat entri baru di mastertransaksi
-                MasterTransaksi::create([
+                $barangDetail = [
                     'TransaksiID' => $transaksiId,
-                    'TipeTransaksi' => 'O', // 'O' menandakan transaksi keluar
-                    'TanggalTransaksi' => now(),
+                    'TipeTransaksi' => 'O',
+                    'TanggalTransaksi' => $now->toDateString(),
                     'docno' => $transaksiId,
                     'KodeBarang' => $barangKode,
                     'Qty' => $qty[$index],
                     'Harga' => $barang->Harga,
                     'Pengirim' => $pengirim,
                     'KodeAlat' => $kodeAlat,
-                    'UserID' => auth()->user()->id, // Asumsikan ada authentication user
-                ]);
+                    'UserID' => $userId,
+                ];
+
+                // Simpan ke database
+                MasterTransaksi::create($barangDetail);
+                $barangDetails[] = $barangDetail;
+
+                // Update kuantitas di MasterBarang
+                $barang->qty -= $qty[$index];
+                $barang->save();
             }
 
             // Komit transaksi database
             DB::commit();
 
-            return redirect()->back()->with('success', 'Transaksi berhasil disimpan.');
+            // Setelah penyimpanan, buat PDF
+            $dataBrg = MasterBarang::all();
+            $namaAlat = MasterAlat::where('KodeAlat', $kodeAlat)->first();
+            $data = [
+                'docno' => $transaksiId,
+                'transactionDate' => $now->toDateString(),
+                'pengirim' => $pengirim,
+                'barangDetails' => $barangDetails,
+                'dataBrg' => $dataBrg,
+                'kodeAlat' => $kodeAlat,
+                'namaAlat' => $namaAlat,
+            ];
+
+            $pdf = PDF::loadView('pengeluaran.invoice_pemakaian', $data);
+
+            // Tampilkan PDF di browser atau simpan dan download
+            return $pdf->stream('invoice_pemakaian_barang_' . $transaksiId . '.pdf'); // atau gunakan download() untuk unduhan otomatis
+
+            // return redirect()->back()->with('success', 'Transaksi berhasil disimpan.');
         } catch (\Exception $e) {
             // Rollback transaksi database jika terjadi error
             DB::rollBack();
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Display the specified resource.
