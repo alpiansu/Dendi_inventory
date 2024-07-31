@@ -91,3 +91,8 @@ Route::delete('/admin/master/barang/hapus/{id}', [MasterBarangController::class,
 Route::get('/admin/master/barang/input', [MasterBarangController::class, 'create'])->name('master.barang.create');
 Route::post('/admin/master/barang/store', [MasterBarangController::class, 'store'])->name('master.barang.store');
 Route::get('/admin/master/barang/export', [MasterBarangController::class, 'excelReport'])->name('master.barang.excelReportAll');
+
+use App\Http\Controllers\Laporan\TrendBulanController;
+
+Route::get('/admin/laporan/trend-bulan', [TrendBulanController::class, 'index'])->name('laporan.trend.bulan.index');
+Route::post('/admin/laporan/trend-bulan', [TrendBulanController::class, 'export'])->name('laporan.trend.bulan.export');
