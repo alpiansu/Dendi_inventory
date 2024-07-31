@@ -31,7 +31,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('laporan.trend.export') }}" method="POST">
+            <form action="{{ route('laporan.trend.bulan.export') }}" method="POST">
                 @csrf
                 <div class="form-group">
                     <label for="jenisLaporan">Jenis Laporan</label>
