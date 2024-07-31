@@ -359,6 +359,17 @@ return [
             'icon' => 'fas fa-fw fa-truck',
             'url'  => 'admin/transaksi/pemakaian',
         ],
+        ['header' => 'LAPORAN'],
+        [
+            'text' => 'Trend Per Plant',
+            'icon' => 'fas fa-fw fa-file',
+            'url'  => 'admin/laporan/trend-plant',
+        ],
+        [
+            'text' => 'Trend Per Bulan',
+            'icon' => 'fas fa-fw fa-file',
+            'url'  => 'admin/laporan/trend-bulan',
+        ],
         /*
         [
             'text'    => 'multilevel',
